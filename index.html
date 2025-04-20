@@ -75,6 +75,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            z-index: 10; /* Ensure states appear above transitions */
         }
         .state.final {
             border: 4px double black;
@@ -91,21 +92,19 @@
         }
         .transition {
             position: absolute;
-            height: 1px;
+            height: 2px; /* Slightly thicker line */
             background-color: black;
             transform-origin: 0 50%;
-            z-index: -1;
+            z-index: 5; /* Below states but visible */
         }
-        .transition:after {
-            content: "";
+        .arrow-head {
             position: absolute;
-            right: 0;
-            top: -5px;
             width: 0;
             height: 0;
-            border-left: 10px solid black;
-            border-top: 5px solid transparent;
-            border-bottom: 5px solid transparent;
+            border-left: 8px solid black;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            z-index: 6;
         }
         .transition-label {
             position: absolute;
@@ -113,6 +112,24 @@
             padding: 2px 5px;
             border-radius: 3px;
             font-size: 12px;
+            z-index: 7;
+        }
+        .self-loop {
+            position: absolute;
+            border-radius: 50%;
+            border-top: 2px solid black;
+            border-left: 2px solid black;
+            z-index: 5;
+        }
+        .self-loop-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-right: 8px solid black;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            transform: rotate(-45deg);
+            z-index: 6;
         }
         .tab-buttons {
             display: flex;
@@ -269,7 +286,6 @@ q4,1,q3"></textarea>
             const centerY = container.offsetHeight / 2;
             const radius = Math.min(centerX, centerY) - 70;
             const stateElements = {};
-            const transitionElements = [];
             
             // Create states
             dfa.states.forEach((state, index) => {
@@ -326,6 +342,12 @@ q4,1,q3"></textarea>
                         selfLoop.style.borderTop = '2px solid black';
                         selfLoop.style.borderLeft = '2px solid black';
                         
+                        // Add arrow for self-loop
+                        const loopArrow = document.createElement('div');
+                        loopArrow.className = 'self-loop-arrow';
+                        loopArrow.style.left = `${fromState.x - 30}px`;
+                        loopArrow.style.top = `${fromState.y - 40}px`;
+                        
                         const loopLabel = document.createElement('div');
                         loopLabel.className = 'transition-label';
                         loopLabel.style.left = `${fromState.x - 15}px`;
@@ -333,6 +355,7 @@ q4,1,q3"></textarea>
                         loopLabel.textContent = symbols.join(',');
                         
                         container.appendChild(selfLoop);
+                        container.appendChild(loopArrow);
                         container.appendChild(loopLabel);
                     } else {
                         // Calculate angle and distance
@@ -349,6 +372,18 @@ q4,1,q3"></textarea>
                         transition.style.width = `${distance - 40}px`;
                         transition.style.transform = `rotate(${angle}deg)`;
                         
+                        // Create arrow head
+                        const arrowHead = document.createElement('div');
+                        arrowHead.className = 'arrow-head';
+                        
+                        // Position arrow at the end of the line, but before the target state
+                        const endX = fromState.x + (distance - 40) * Math.cos(angle * Math.PI / 180);
+                        const endY = fromState.y + (distance - 40) * Math.sin(angle * Math.PI / 180);
+                        
+                        arrowHead.style.left = `${endX - 4}px`;
+                        arrowHead.style.top = `${endY - 4}px`;
+                        arrowHead.style.transform = `rotate(${angle}deg)`;
+                        
                         // Create label for transition
                         const label = document.createElement('div');
                         label.className = 'transition-label';
@@ -357,6 +392,7 @@ q4,1,q3"></textarea>
                         label.textContent = symbols.join(',');
                         
                         container.appendChild(transition);
+                        container.appendChild(arrowHead);
                         container.appendChild(label);
                     }
                 }
